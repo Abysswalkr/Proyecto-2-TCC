@@ -1,1 +1,1 @@
-# Proyecto-2-TCC
+# Proy2

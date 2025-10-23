@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tree Visualization with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .node circle {
+            fill: #4682B4;
+            stroke: #4169E1;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font: 14px sans-serif;
+            fill: #333;
+        }
+
+        .link {
+            fill: none;
+            stroke: #aaa;
+            stroke-opacity: 0.6;
+            stroke-width: 1.5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Visualización del Árbol Sintáctico</h2>
+    <svg width="1000" height="900"></svg> <!-- Ajusté el tamaño para darle más espacio -->
+
+    <script>
+        // Definir las dimensiones del SVG y el margen superior
+        const width = 1000;
+        const height = 1000;
+        const margin = { top: 50, right: 50, bottom: 50, left: 50 }; // Añadí un margen para dar más espacio
+
+        // Crear un layout de árbol en D3.js
+        const treeLayout = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right])
+            .separation((a, b) => a.parent == b.parent ? 1 : 1.5);
+
+        // Crear el contenedor SVG con un margen superior
+        const svg = d3.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`); // Ajusté la transformación para dar margen superior
+
+        // Cargar el archivo JSON y renderizar el árbol
+        d3.json("output/tree.json").then(function(data) {
+            // Convertir los datos al formato jerárquico de D3
+            const root = d3.hierarchy(data);
+
+            // Generar los enlaces entre nodos
+            const links = treeLayout(root).links();
+            
+            // Generar los nodos
+            const nodes = root.descendants();
+
+            // Dibujar los enlaces (aristas)
+            svg.selectAll(".link")
+                .data(links)
+                .enter()
+                .append("path")
+                .attr("class", "link")
+                .attr("d", d3.linkVertical()
+                    .x(d => d.x)
+                    .y(d => d.y)
+                );
+
+            // Dibujar los nodos
+            const nodeGroup = svg.selectAll(".node")
+                .data(nodes)
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+
+            nodeGroup.append("circle")
+                .attr("r", 6);
+
+            nodeGroup.append("text")
+                .attr("dy", 3)
+                .attr("x", d => d.children ? -12 : 12)
+                .style("text-anchor", d => d.children ? "end" : "start")
+                .text(d => d.data.value);
+        });
+    </script>
+</body>
+</html>
